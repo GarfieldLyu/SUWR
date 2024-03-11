@@ -212,8 +212,8 @@ class NonLeakingSelector(pl.LightningModule):
         loss_pred = self.loss_func(preds_logits_all, y, reduction='none') # prediction loss, cross entropy or mse.
         
         if self.current_epoch % 10 == 0:
-            print(f'\nloss pred: {loss_pred.mean(0)}\n\n')
-            print(f'\nstop prob: {stop_probs_cdn.mean(0)}\n\n')
+            print(f'\nloss pred at each step: {loss_pred.mean(0)}\n\n')
+            print(f'\nstop prob at each step: {stop_probs_cdn.mean(0)}\n\n')
 
         sparsity_vec = torch.arange(stop_probs_cdn.shape[1]).to(stop_probs_cdn.device)  # sparsity matrix, + 1 for adding one step. 
         loss_without_stopprob = (loss_pred * 10. + sparsity_vec * lamda)  # *10 to the pred loss, because it has way smaller scale than sparsity weight. reducing lamda also works.
@@ -227,7 +227,7 @@ class NonLeakingSelector(pl.LightningModule):
         return loss
 
     def stop_logit_to_conditional_probs(self, stop_logits_all, explore=True):
-        """ compute conditional stop probs, eq 11 in paper. """
+        """ compute conditional stop probs, eq 11 in paper. prob_new sums up to 1."""
         prob = torch.sigmoid(stop_logits_all)   # prob to stop at this step.
         cum = torch.cumprod(1. - prob[:, :-1], dim=-1)
         prob_new = prob.clone()         # clone prob to avoid inplace operation for gradients computing.
