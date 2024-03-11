@@ -45,11 +45,11 @@ class NonLeakingSelector(pl.LightningModule):
         
         if hparams['model_type'] == 'simple':
             print("\n===================== Init simple model =====================\n")
-            self.model = SimpleNet(hparams['input_dim'] + 1, hparams['hidden_dim'], hparams['output_dim'], hparams['num_layers'])
+            self.model = SimpleNet(hparams['input_dim'], hparams['hidden_dim'], hparams['output_dim'], hparams['num_layers'], hparams['add_step'])
 
         elif hparams['model_type'] == 'selector_predictor':
             print("\n===================== Init selector predictor model =====================\n")
-            self.model = SelectorPredictor(hparams['input_dim'] + 1, hparams['hidden_dim'], hparams['output_dim'], hparams['num_layers'])
+            self.model = SelectorPredictor(hparams['input_dim'], hparams['hidden_dim'], hparams['output_dim'], hparams['num_layers'], hparams['add_step'])
         else:
             raise ValueError(f"Model {hparams['model']} not supported.")
         

@@ -15,8 +15,6 @@ import pickle
 project_dir = '/home/lyu/featureselection'
 
 
-        
-
 def build_model(kwargs: dict):
     """
     Init model for training.
@@ -26,16 +24,19 @@ def build_model(kwargs: dict):
     return model
 
 
-def main_mnist(data_type: str, model_params: dict, train_params: dict):
+def main(args: dict):
     """ categorical classification"""
 
-    #load data first
-    (X_train, Y_train, X_test, Y_test) = load_image_data(data_type)
+    # update model and training parameters.
+    model_params, train_params = update_arguments(args)
+
+    #load imgae data, [mnist|fashion-mnist].
+    (X_train, Y_train, X_test, Y_test) = load_image_data(args['data_type'])
     train_idxes = int(X_train.shape[0] * 0.8)            # 80% for training, 20% for validation.
-    model_params.update({'input_dim': X_train.shape[1]}) # update input dimension for the model based on the data.
     Auc, Apr, Acc = [], [], []
 
-    for t in range(train_params['tries']):    # train multiple times, simply take 0 - tries-1 as random seeds.
+    # start runing experiments.  Train multiple times, simply take 0 -- tries-1 as random seed.
+    for t in range(train_params['tries']):   
         seed_everything(t, workers=True)
         train_dataset = TensorDataset(torch.tensor(X_train[: train_idxes]), torch.tensor(Y_train[: train_idxes], dtype=torch.long))
         valid_dataset = TensorDataset(torch.tensor(X_train[train_idxes:]), torch.tensor(Y_train[train_idxes:], dtype=torch.long))
@@ -97,7 +98,7 @@ def main_mnist(data_type: str, model_params: dict, train_params: dict):
         print(f'Y_test shape: {Y_test.shape}')
         Out_test = model.predict(X_test_tensor)                    # (predict, stop, mask, step_masks) 
         pred_test = torch.softmax(Out_test[0].cpu(), -1).numpy()   # softmax for classification.
-        feat_test = Out_test[2].cpu().numpy()                      # N, feature_dim, a final mask for each sample.
+        feat_test = Out_test[2].cpu().numpy()                      # (N, feature_dim), a final mask for each sample.
         step_masks = [[step.cpu().numpy() for step in instance ] for instance in Out_test[3]]  # list of mask indices for each step. Keep selection order.
         sparsity = feat_test.sum(-1).mean()                        # Average ratio of selected features.
 
@@ -117,11 +118,6 @@ def main_mnist(data_type: str, model_params: dict, train_params: dict):
         with open(f'{save_model_to_dir}/test_outputs.pkl', 'wb') as f:
             pickle.dump(save_results, f)
 
-
-def main(args: dict):
-    """ main function for training and testing."""
-    model_params, train_params = update_arguments(args)
-    main_mnist(args['data_type'], model_params, train_params)
                     
                     
 def argument_parser():
@@ -131,6 +127,7 @@ def argument_parser():
     parser.add_argument('--hidden_dim', type=int, default=200, help='hidden dimension')
     parser.add_argument('--num_layers', type=int, default=8, help='number of layers')
     
+    parser.add_argument('--add_step', type=int, default=0, option=[0, 1], help='add step index as part of input in no_leaking_selector.')
     parser.add_argument('--step_size', type=int, default=1, help='step size in no_leaking_selector.')
     parser.add_argument('--lamda', type=float, default=0.5, help='sparsity weight')
     parser.add_argument('--max_budget', type=int, default=100, help='max budget for no_leaking_selector.')

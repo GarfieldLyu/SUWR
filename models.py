@@ -3,17 +3,18 @@ import torch.nn as nn
 
 class SimpleNet(nn.module):
     # Trainable linear model, shares representation for label prediction, stop signal, and selection logits.
-    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, num_layers:int):
+    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, num_layers:int, add_step: int ):
         super(SimpleNet, self).__init__()
         """
         input_dim: original input dimension + 1, where the additional dimension is for step t.
         hidden_dim: hidden dimension.
         output_dim: output label dimension. 1 for MSE.
         num_layers: number of hidden layers.
+        add_step: add step index as part of input.
         """
         self.input_dim, self.hidden_dim, self.output_dim, self.num_layers = input_dim, hidden_dim, output_dim, num_layers
         layers = []
-        layers.append(nn.Linear(self.input_dim, self.hidden_dim))
+        layers.append(nn.Linear(self.input_dim + add_step, self.hidden_dim))
         layers.append(nn.LayerNorm(self.hidden_dim))
         layers.append(nn.Tanh())  # add relu, following invase.
          
@@ -30,7 +31,7 @@ class SimpleNet(nn.module):
         self.layer_out = nn.Sequential(*[nn.Linear(self.hidden_dim, self.hidden_dim), \
                                         nn.Tanh(), \
                                         nn.Linear(self.hidden_dim, self.output_dim)])   # complex layers for label prediction, for hard task.
-        self.layer_select = nn.Linear(self.hidden_dim, self.input_dim - 1)  # input_dim - 1 because one dimension is for step t. 
+        self.layer_select = nn.Linear(self.hidden_dim, self.input_dim)  # input_dim - 1 because one dimension is for step t. 
         
     def forward(self, Input):   
         hidden = self.layers(Input)            # hidden representation.
@@ -43,23 +44,23 @@ class SimpleNet(nn.module):
 
 class SelectorPredictor(nn.module):
     # Trainable linear models, individual representation for label prediction, stop signal, and selection logits.
-    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, num_layers:int):  
+    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, num_layers:int, add_step: int):  
         super(SelectorPredictor, self).__init__()
         """================Init selector================="""
         selector_layers = []
-        selector_layers.append(nn.BatchNorm1d(input_dim, momentum=0.01)) # add a batch normalization layer.
+        selector_layers.append(nn.BatchNorm1d(input_dim + add_step, momentum=0.01)) # add a batch normalization layer.
         selector_layers.append(nn.Linear(input_dim, hidden_dim))
         selector_layers.append(nn.Tanh())  # add activation. 
         for l in range(num_layers-2):
             selector_layers.append(nn.Linear(hidden_dim, hidden_dim))
             selector_layers.append(nn.Tanh())
             #selector_layers.append(nn.Dropout(0.2))
-        selector_layers.append(nn.Linear(hidden_dim, input_dim - 1))  # input_dim  - 1 because one dimension is for step t.
+        selector_layers.append(nn.Linear(hidden_dim, input_dim))  # input_dim  - 1 because one dimension is for step t.
         self.selector = nn.Sequential(*selector_layers)
 
         """================Init predictor================="""
         predictor_layers = []
-        predictor_layers.append(nn.BatchNorm1d(input_dim, momentum=0.01)) # add a batch normalization layer.
+        predictor_layers.append(nn.BatchNorm1d(input_dim + add_step, momentum=0.01)) # add a batch normalization layer.
         predictor_layers.append(nn.Linear(input_dim, hidden_dim))
         predictor_layers.append(nn.Tanh())  # add activation.
 
@@ -72,7 +73,7 @@ class SelectorPredictor(nn.module):
 
         """================Init stop signal================="""
         stop_layers = []
-        stop_layers.append(nn.BatchNorm1d(input_dim, momentum=0.01)) # add a batch normalization layer.
+        stop_layers.append(nn.BatchNorm1d(input_dim + add_step, momentum=0.01)) # add a batch normalization layer.
         stop_layers.append(nn.Linear(input_dim, hidden_dim))
         stop_layers.append(nn.Tanh())  # add activation.
         stop_layers.append(nn.Linear(hidden_dim, hidden_dim))  # matrix for stop signal.

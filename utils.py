@@ -20,6 +20,7 @@ def update_arguments(args: dict):
     model_params, train_params = {}, {}
     model_params.update({'data_type': args['data_type'],
                          'model_type': args['model_type'],
+                         'add_step': args['add_step'],
                         'hidden_dim': args['hidden_dim'], 
                         'num_layers': args['num_layers'],
                         'valid_metric_func': classification_performance_metric,
