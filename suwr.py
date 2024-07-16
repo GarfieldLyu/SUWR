@@ -12,8 +12,8 @@ class NonLeakingSelector(pl.LightningModule):
         super(NonLeakingSelector, self).__init__()
         """
         hparams: 
-            # hyperparameters for the model definition.
-            model_type: simple or selector_predictor.
+            # hyperparameters for the model definition. Defined in models.py
+            model_type: simple or selector_predictor. We use simple. 
             input_dim: original input dimension.
             output_dim: output label dimension. 1 for MSE.
             hidden_dim: hidden dimension.
@@ -267,8 +267,6 @@ class NonLeakingSelector(pl.LightningModule):
         self.log('best sparsity', self.best_sparsity_avg)
         self.validation_step_outputs.clear()  # free memory
         self.sparsity_step_outputs.clear()    # free memory
-
-    
 
     def valid_eval_metric(self, preds_logits_all, labels, stop_logits_all):
         """ Validation metric for the model. We should consider a good balance between the prediction accuracy and sparsity."""

@@ -5,13 +5,14 @@ from sklearn.metrics import roc_auc_score, accuracy_score, average_precision_sco
 import matplotlib.pyplot as plt
 import numpy as np
 import torch.nn.functional as F
-from data_generate_syn import generate_dataset
+import itertools
+from data_generate_syn import generate_dataset, evaluate_synthetic
 
 
 fashion_class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 
-image_data = ['mnist', 'fashion_mnist']
+image_data = ['digit_mnist', 'fashion_mnist']
 synthtic_benchmark = ['syn1', 'syn2', 'syn3', 'syn4', 'syn5', 'syn6']
 
 
@@ -29,8 +30,7 @@ def update_arguments(args: dict):
                         'exploration_stop': 1,
                         'max_budget': args['max_budget'],
                         'step_size': args['step_size'],
-                        'lamda': args['lamda'],
-                        'select_patch': args['select_patch']
+                        'lamda': args['lamda']
                         })
 
     train_params.update({'name_your_model': args['name_your_model'],
@@ -57,6 +57,7 @@ def update_arguments(args: dict):
         model_params.update({'output_dim': 1})
         model_params.update({'loss_func': F.mse_loss})
         model_params.update({'eval_func': F.mse_loss})
+        model_params.update({'valid_metric_func': F.mse_loss})
         model_params.update({'task': 'regression'})
         train_params.update({'mode': 'min'})
 
@@ -69,6 +70,8 @@ def update_arguments(args: dict):
         if args['data_type'] in image_data:
             model_params.update({'input_dim': 784})
             model_params.update({'output_dim': 10})
+            model_params.update({'select_patch': args['select_patch']})
+                        
     
         elif args['data_type'] in synthtic_benchmark:
             model_params.update({'input_dim': 11})
@@ -83,7 +86,7 @@ def load_image_data(data_type: str):
     data_type: str, 'mnist' or 'fashion_mnist'
     return: (x_train, y_train, x_test, y_test)
     """
-    if data_type == 'mnist':
+    if data_type == 'digit_mnist':
         (x_train, y_train), (x_test, y_test) = mnist.load_data()
     elif data_type == 'fashion_mnist':
         (x_train, y_train), (x_test, y_test) = fashion_mnist.load_data()
@@ -95,8 +98,18 @@ def load_image_data(data_type: str):
     print(f'Loaded {data_type} data.')
     return data
 
+
 def load_synthetic_data(data_type: str, num_samples: int, num_feat: int, seed: int):
+    """ Generate synthetic benchmark data, syn1, syn2, syn3, syn4, syn5, syn6."""
     return generate_dataset(n = num_samples, dim = num_feat, data_type = data_type, seed = seed)
+
+
+def load_pareto_data(num_feat:int):
+    """ Generate toy data for pareto experiments."""
+    x = np.array(list(itertools.product([0, 1], repeat=num_feat))).astype(np.float64)
+    y = np.sum(x[:,::2]*x[:,1::2], axis=1)**2. 
+    return (x, y)
+    
 
 def classification_performance_metric(y_true, y_pred):
     """ Compute auroc, aupr, acc, given prediction and true labels. """

@@ -12,7 +12,7 @@ import pickle
 
 #torch.set_float32_matmul_precision('medium' | 'high')
 
-project_dir = '/home/lyu/featureselection'
+project_dir = "set your own project directory here"
 
 
 def build_model(kwargs: dict):
@@ -30,7 +30,7 @@ def main(args: dict):
     # update model and training parameters.
     model_params, train_params = update_arguments(args)
 
-    #load imgae data, [mnist|fashion-mnist].
+    #load imgae data, [digit_mnist|fashion-mnist].
     (X_train, Y_train, X_test, Y_test) = load_image_data(args['data_type'])
     train_idxes = int(X_train.shape[0] * 0.8)            # 80% for training, 20% for validation.
     Auc, Apr, Acc = [], [], []
@@ -70,7 +70,7 @@ def main(args: dict):
                               max_epochs=train_params['max_epochs'], devices=1, accelerator=train_params['device'],
                               default_root_dir=save_model_to_dir)
         
-            if train_params['resume']:
+            if train_params['resume']:   # resume training from a checkpoint, turn off exploration.
                 ckpt_resume = train_params['ckpt_eval']
                 print(f'Continue training from {ckpt_resume}\n\n')
                 model_params['exploration'] = 0.05
@@ -122,7 +122,7 @@ def main(args: dict):
                     
 def argument_parser():
     parser = argparse.ArgumentParser(description='Run experiments')
-    parser.add_argument('--data_type', type=str, default='mnist', help='mnist or fashion_mnist.')
+    parser.add_argument('--data_type', type=str, default='digit_mnist', help='digit_mnist or fashion_mnist.')
     parser.add_argument('--model_type', type=str, default='simple', help='simple or selector_predictor.')
     parser.add_argument('--hidden_dim', type=int, default=200, help='hidden dimension')
     parser.add_argument('--num_layers', type=int, default=8, help='number of layers')
