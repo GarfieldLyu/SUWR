@@ -62,17 +62,25 @@ def main(args: dict):
             """===================== train and evaluate ======================"""
             save_model_to_dir = f'{project_dir}/experiments/{train_params["name_your_model"]}/{t}'
 
-            early_stop_callback = EarlyStopping(monitor="validation", min_delta=0.00, 
-                                                patience=train_params["patience"], verbose=True, mode="max")
+            early_stop_callback = EarlyStopping(monitor="validation", \
+                                                min_delta=0.00, \
+                                                patience=train_params["patience"], \
+                                                verbose=True, \
+                                                mode=train_params["mode"])
         
-            checkpoint_callback = ModelCheckpoint(save_top_k=5, verbose=True, 
-                                                  dirpath=save_model_to_dir,
-                                                  #filename=f"best_model",
-                                                  monitor='validation', mode='max')
+            checkpoint_callback = ModelCheckpoint(save_top_k=5, \
+                                                  verbose=True, \
+                                                  dirpath=save_model_to_dir, \
+                                                  monitor='validation', \
+                                                  mode=train_params["mode"])
 
-            trainer = Trainer(detect_anomaly= True, deterministic='warn',
-                              callbacks=[checkpoint_callback, early_stop_callback], 
-                              max_epochs=train_params['max_epochs'], devices=1, accelerator=train_params['device'],
+            trainer = Trainer(detect_anomaly= True, \
+                              deterministic='warn', \
+                              callbacks=[checkpoint_callback, \
+                              early_stop_callback], \
+                              max_epochs=train_params['max_epochs'], \
+                              devices=1, \
+                              accelerator=train_params['device'],
                               default_root_dir=save_model_to_dir)
         
             if train_params['resume']:

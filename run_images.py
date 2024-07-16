@@ -56,13 +56,18 @@ def main(args: dict):
 
             save_model_to_dir = f'{project_dir}/experiments/{train_params["name_your_model"]}/{t}'
 
-            early_stop_callback = EarlyStopping(monitor="validation", min_delta=0.00, 
-                                                patience=train_params["patience"], verbose=True, mode=train_params["mode"])
+            early_stop_callback = EarlyStopping(monitor="validation", \
+                                                min_delta=0.00, \
+                                                patience=train_params["patience"], \
+                                                verbose=True, \
+                                                mode=train_params["mode"])
         
-            checkpoint_callback = ModelCheckpoint(save_top_k=3, verbose=True, 
-                                                  dirpath=save_model_to_dir,
+            checkpoint_callback = ModelCheckpoint(save_top_k=3, \
+                                                  verbose=True, \
+                                                  dirpath=save_model_to_dir, \
                                                   filename='model-{epoch:02d}-{validation:.2f}',
-                                                  monitor='validation', mode=train_params["mode"])
+                                                  monitor='validation', \
+                                                  mode=train_params["mode"])
 
             # Init trainer. deiveces=1, accelerator='gpu', use single gpu'.
             trainer = Trainer(detect_anomaly=True, deterministic='warn',
@@ -89,7 +94,6 @@ def main(args: dict):
             print(f"Loading best model from {checkpoint_callback.best_model_path}...\n")
             model = model.load_from_checkpoint(checkpoint_callback.best_model_path).double()
             model.eval()
-
 
         """================================== evaluate on test data=================================="""
       
