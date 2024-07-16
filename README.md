@@ -1,7 +1,7 @@
 # SUWR
-### This repository contains the source code for our paper **Local Feature Selection without Label or Feature Leakage for Interpretable Machine Learning Predictions**, accepted at ICML 2024. 
+This repository contains the source code for our paper **Local Feature Selection without Label or Feature Leakage for Interpretable Machine Learning Predictions**, accepted at ICML 2024. 
 
-![Step-wise selection and prediction](Images/fig_fashion.pdf)
+<img src="./Images/fig_fashion.pdf">
 
 ### Experiment 1: Pareto Front Analysis
 We first generate a toy dataset with 10 binary features, resulting in 2^10 = 1024 data samples. To generate the dataset, simply call `load_pareto_data` in `utils.py` 
